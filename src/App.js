@@ -1,8 +1,11 @@
 import React, { Suspense, useEffect, useRef, useState, useMemo } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
 import { useGLTF, useTexture, Loader, Environment, useFBX, useAnimations, OrthographicCamera } from '@react-three/drei';
 import { MeshStandardMaterial } from 'three/src/materials/MeshStandardMaterial';
 import { OrbitControls } from '@react-three/drei';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
+
+
 
 import { LinearEncoding, sRGBEncoding } from 'three/src/constants';
 import { LineBasicMaterial, MeshPhysicalMaterial, Vector2 } from 'three';
@@ -50,7 +53,7 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     "/images/teeth_normal.webp",
     // "/images/teeth_specular.webp",
     "/images/h_color.webp",
-    "/images/tshirt_diffuse.png",
+    "/images/tshirt_diffuse.webp",
     "/images/tshirt_normal.webp",
     "/images/tshirt_roughness.webp",
     "/images/h_alpha.webp",
@@ -454,18 +457,22 @@ function App() {
   
 
   </Canvas>
-  <Loader dataInterpolation={(p) => `Loading... please wait`}  />
+  <Loader dataInterpolation={(p) => `Please turn your mic and audio on \n Loading... please wait`}  />
   </div>
   )
 }
 
 function Bg() {
   const {scene} =  useThree();
-  const texture = useTexture('/images/sky.jpg');
+  const texture = useTexture('/images/office2.jpg');
+
+  // const gltf = useLoader(GLTFLoader, '/images/richards_art_gallery_-_audio_tour.glb');
 
   scene.background = texture; 
 
-  return(<>
+  return(<> 
+ 
+    {/* <primitive object={gltf.scene} dispose={null} scale={[1, 1, 1]} position={[10, 0, 0]} rotation={[0, 0, 0]} /> */}
     {/* <mesh position={[0, 1.5, -2]} scale={[0.8, 0.8, 0.8]}>
       <planeBufferGeometry />
       <meshBasicMaterial map={texture} side={THREE.DoubleSide}/>
