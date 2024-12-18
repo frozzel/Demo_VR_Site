@@ -53,7 +53,7 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     "/images/teeth_normal.webp",
     // "/images/teeth_specular.webp",
     "/images/h_color.webp",
-    "/images/tshirt_diffuse.webp",
+    "/images/tshirt_diffuse2.png",
     "/images/tshirt_normal.webp",
     "/images/tshirt_roughness.webp",
     "/images/h_alpha.webp",
@@ -324,16 +324,16 @@ function makeSpeech2(text) {
 }
 
 const STYLES = {
-  area: {position: 'absolute', bottom:'10px', left: '10px', zIndex: 500, display: 'flex', flexDirection: 'column'},
+  area: {position: 'absolute', bottom:'10px', left: '10px', zIndex: 500, display: 'flex', flexDirection: 'column', background: '#222222', padding: '10px',  borderRadius: '5px'},
   text: {margin: '0px', width:'300px', padding: '5px', background: 'none', color: '#ffffff', fontSize: '1.2em', border: 'none'},
   question: {margin: '0px', width:'300px', padding: '5px', background: 'none', color: '#DC9BD4', fontSize: '1.2em', border: 'none'},
-  speak: {padding: '10px', marginTop: '5px', display: 'block', color: '#FFFFFF', background: '#222222', border: 'None', maxWidth: '80px'},
+  speak: {padding: '10px', marginTop: '5px', display: 'block', color: '#222222', background: '#ffffff', border: 'None', maxWidth: '80px'},
   area2: {position: 'absolute', top:'5px', right: '15px', zIndex: 500},
   label: {color: '#777777', fontSize:'0.8em'}
 }
 
 function App() {
-  const [message, setMessage] = useState("My name is Arwen. I'm a AI virtual assistant who can help you with your questions. Click speak to start a conversation.");
+  const [message, setMessage] = useState("My name is Arwen. I'm a AI virtual assistant who can help you with your Progressive Insurance questions. Click speak to start a conversation.");
   const audioPlayer = useRef();
   const [intro, setIntro] = useState(true);
   const [speak, setSpeak] = useState(false);
@@ -464,7 +464,7 @@ function App() {
 
 function Bg() {
   const {scene} =  useThree();
-  const texture = useTexture('/images/office2.jpg');
+  const texture = useTexture('/images/office5.jpeg');
 
   // const gltf = useLoader(GLTFLoader, '/images/richards_art_gallery_-_audio_tour.glb');
 
