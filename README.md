@@ -5,13 +5,13 @@
 
 # Azure 3D Avatar and ChatGPT Integration
 
-[![Github](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)](https://github.com/frozzel/TALKING_AVATAR_BACKEND-MAIN)  [![DIGITALOCEAN](https://img.shields.io/badge/DigitalOcean-0080FF.svg?style=for-the-badge&logo=DigitalOcean&logoColor=white)](https://avatar-ai-app-sbz2z.ondigitalocean.app/)
+[![Github](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)](https://github.com/frozzel/TALKING_AVATAR_BACKEND-MAIN)  [![DIGITALOCEAN](https://img.shields.io/badge/DigitalOcean-0080FF.svg?style=for-the-badge&logo=DigitalOcean&logoColor=white)](https://meta-vr-demo-kn8pf.ondigitalocean.app/)
 
 ## Overview
 
 This MERN (MongoDB, Express.js, React.js, Node.js) application integrates an Azure-powered 3D avatar with advanced features such as animated voice, eye movement, and conversational capabilities powered by ChatGPT. The application creates an engaging, lifelike interaction experience, combining modern front-end design with robust back-end functionality.
 
-[![Github license](https://img.shields.io/badge/Client-0275d8.svg)](https://github.com/frozzel/TALKING_AVATAR-MAIN)   [![Github license](https://img.shields.io/badge/Server-0275d8.svg)](https://github.com/frozzel/TALKING_AVATAR_BACKEND-MAIN) 
+[![Github license](https://img.shields.io/badge/Client-0275d8.svg)](https://meta-vr-demo-kn8pf.ondigitalocean.app/)   [![Github license](https://img.shields.io/badge/Server-0275d8.svg)](https://github.com/frozzel/TALKING_AVATAR_BACKEND-MAIN) 
 
 
 ## Features
