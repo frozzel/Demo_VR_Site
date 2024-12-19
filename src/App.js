@@ -1,9 +1,8 @@
 import React, { Suspense, useEffect, useRef, useState, useMemo } from 'react'
-import { Canvas, useFrame, useThree, useLoader } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, useTexture, Loader, Environment, useFBX, useAnimations, OrthographicCamera } from '@react-three/drei';
 import { MeshStandardMaterial } from 'three/src/materials/MeshStandardMaterial';
 import { OrbitControls } from '@react-three/drei';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
 
 
@@ -53,7 +52,7 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     "/images/teeth_normal.webp",
     // "/images/teeth_specular.webp",
     "/images/h_color.webp",
-    "/images/tshirt_diffuse2.png",
+    "/images/tshirt_diffuse3.png",
     "/images/tshirt_normal.webp",
     "/images/tshirt_roughness.webp",
     "/images/h_alpha.webp",
@@ -333,7 +332,7 @@ const STYLES = {
 }
 
 function App() {
-  const [message, setMessage] = useState("My name is Arwen. I'm a AI virtual assistant who can help you with your Progressive Insurance questions. Click speak to start a conversation.");
+  const [message, setMessage] = useState("My name is Arwen. I'm a AI virtual assistant who can help you with your InsuraPro Car Insurance questions. Click speak to start a conversation.");
   const audioPlayer = useRef();
   const [intro, setIntro] = useState(true);
   const [speak, setSpeak] = useState(false);
@@ -464,7 +463,7 @@ function App() {
 
 function Bg() {
   const {scene} =  useThree();
-  const texture = useTexture('/images/office5.jpeg');
+  const texture = useTexture('/images/office6.jpeg');
 
   // const gltf = useLoader(GLTFLoader, '/images/richards_art_gallery_-_audio_tour.glb');
 
