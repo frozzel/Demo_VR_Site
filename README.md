@@ -126,3 +126,4 @@ The text to speech and blendShapes converter for https://github.com/bornfree/tal
 
 >[!CAUTION]
 > Resources for avatar only no chat gpt integration
+
