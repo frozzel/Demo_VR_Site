@@ -345,7 +345,7 @@ function App() {
 
   const handleListen = async () => {
     setMessage('Listening...');
-    // console.log(message)
+    console.log(message)
   
     var quest = null
   
