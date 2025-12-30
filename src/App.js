@@ -52,7 +52,7 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     "/images/teeth_normal.webp",
     // "/images/teeth_specular.webp",
     "/images/h_color.webp",
-    "/images/tshirt_diffuse3.png",
+    "/images/tshirt_diffuseCyrusWt.png",
     "/images/tshirt_normal.webp",
     "/images/tshirt_roughness.webp",
     "/images/h_alpha.webp",
@@ -332,7 +332,7 @@ const STYLES = {
 }
 
 function App() {
-  const [message, setMessage] = useState("My name is Arwen. I'm a AI virtual assistant who can help you with your InsuraPro Car Insurance questions. Click speak to start a conversation.");
+  const [message, setMessage] = useState("Hi there! I’m Arwen, your virtual assistant here at Cyrus Group. I can help you explore our web development services, walk you through our design and development process, or gather a few details so our team can provide a tailored solution for your project. How can I assist you today?");
   const audioPlayer = useRef();
   const [intro, setIntro] = useState(true);
   const [speak, setSpeak] = useState(false);
@@ -418,7 +418,7 @@ function App() {
 
       <OrthographicCamera 
       makeDefault
-      zoom={1800}
+      zoom={1700}
       position={[0, 1.65, 1]}
       />
 
@@ -432,6 +432,10 @@ function App() {
 
       <Suspense fallback={null}>
         <Bg />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <Logo />
       </Suspense>
 
       <Suspense fallback={null}>
@@ -463,7 +467,9 @@ function App() {
 
 function Bg() {
   const {scene} =  useThree();
-  const texture = useTexture('/images/office6.jpeg');
+  const texture = useTexture('/images/office3.jpeg');
+  texture.encoding = sRGBEncoding; // Ensure correct color encoding
+
 
   // const gltf = useLoader(GLTFLoader, '/images/richards_art_gallery_-_audio_tour.glb');
 
@@ -489,6 +495,19 @@ function Bg() {
     
   </>)
 
+}
+
+function Logo() {
+  const texture = useTexture('/images/cyrusLogoBlk.png');
+  texture.encoding = sRGBEncoding; // Ensure correct color encoding
+
+  // Adjust position and scale based on your scene
+  return (
+    <mesh position={[-.2, 1.8, -0]} scale={[ .2, .04, 1]}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={texture} transparent={true} />
+    </mesh>
+  );
 }
 
 export default App;
