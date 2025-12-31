@@ -339,6 +339,8 @@ function App() {
   const [text, setText] = useState("👇👇👇👇");
   const [audioSource, setAudioSource] = useState(null);
   const [playing, setPlaying] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false);
+  const [permissionStatus, setPermissionStatus] = useState("Requesting...");
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   const recognition = new SpeechRecognition();
@@ -391,78 +393,208 @@ function App() {
     setPlaying(true);
 
   }  
+  // Request microphone permissions
+    const requestPermissions = async () => {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("Microphone access granted");
+
+      setPermissionStatus("Microphone access granted. Please accept data collection to continue.");
+    } catch (err) {
+      console.error("Microphone permission denied:", err);
+      setPermissionStatus("Microphone access denied. Please allow it to use voice features.");
+    }
+  };
+
+  const handleConsent = () => {
+    try {
+      // Create or resume audio context on Chrome
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      if (ctx.state === "suspended") {
+        ctx.resume().then(() => console.log("AudioContext resumed after user gesture"));
+      }
+    } catch (e) {
+      console.warn("Could not initialize audio context:", e);
+    }
+
+    localStorage.setItem("userConsent", "true");
+    setHasConsent(true);
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("userConsent");
+    if (saved === "true") {
+      setHasConsent(true);
+    }
+  }, []);
 
   return (
     <div className="full">
-      <div style={STYLES.area}>
-        <textarea rows={4} type="text" style={STYLES.text} value={message} onChange={(e) => setText(e.target.value.substring(0, 200))} />
-        <textarea rows={4} type="text" style={STYLES.question} value={text} onChange={(e) => setText(e.target.value.substring(0, 200))} />
-        {/* <button onClick={() => setSpeak(true)} style={STYLES.speak}> { speak? 'Running...': 'Speak' }</button> */}
-        <button onClick={() => handleListen()} style={STYLES.speak}> { speak? 'Running...': 'Speak' }</button>
+      {!hasConsent ? (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          // Background image:
+          backgroundImage: "url('/images/office3.jpeg')", // ⬅️ your image here
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          zIndex: 9999
+        }}
+      >
+        {/* Semi-transparent overlay */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.75)", // black with 75% opacity
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            padding: "2rem",
+            color: "#fff"
+          }}
+        >
+            {/* === Logo Section === */}
+        <img
+          src="/images/cyrusLogoLg.png"    // Adjust path as needed
+          alt="Cyrus Group Logo"
+          style={{
+            width: "600px",
+            marginBottom: "1.5rem",
+            borderRadius: "8px",            // Optional: rounded logo corners
+            objectFit: "contain"
+          }}
+        />
+          <h2>Welcome to Cyrus Group Virtual Assistant</h2>
+          <p>
+            To continue, please allow access to your microphone and confirm you consent to data collection for improving your experience.
+          </p>
+          <p style={{ marginTop: "10px" }}>{permissionStatus}</p>
 
+          <div style={{ marginTop: "20px" }}>
+            <button
+              onClick={requestPermissions}
+              style={{
+                background: "#f687b3",
+                color: "#333",
+                border: "none",
+                padding: "10px 20px",
+                margin: "5px",
+                fontSize: "1em",
+                cursor: "pointer",
+                borderRadius: "16px",   // 👈 Rounded corners here
+                
+              }}
+            >
+              Request Microphone Access
+            </button>
+          </div>
 
-      </div>
-
-      <ReactAudioPlayer
-        src={audioSource}
-        ref={audioPlayer}
-        onEnded={playerEnded}
-        onCanPlayThrough={playerReady}
-        
-      />
-      
-      {/* <Stats /> */}
-    <Canvas dpr={2} onCreated={(ctx) => {
-        ctx.gl.physicallyCorrectLights = true;
-      }}>
-
-      <OrthographicCamera 
-      makeDefault
-      zoom={1700}
-      position={[0, 1.65, 1]}
-      />
-
-      <OrbitControls
-        target={[0, 1.65, 0]}
-      />
-
-      <Suspense fallback={null}>
-        <Environment background={false} files="/images/photo_studio_loft_hall_1k.hdr" />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <Bg />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <Logo />
-      </Suspense>
-
-      <Suspense fallback={null}>
-
-
-
-          <Avatar 
-            avatar_url="/model.glb" 
-            speak={speak} 
-            setSpeak={setSpeak}
-            text={text}
-            setAudioSource={setAudioSource}
-            playing={playing}
-            intro={intro}
-            message={message}
-            setIntro={setIntro}
-            />
-
-      
-      </Suspense>
-
-  
-
-  </Canvas>
-  <Loader dataInterpolation={(p) => `Please turn your mic and audio on \n Loading... please wait`}  />
+          <div style={{ marginTop: "10px" }}>
+            <label style={{ display: "block", marginBottom: "10px" }}>
+              <input type="checkbox" id="consentCheck" />{" "}
+              I consent to microphone usage and data collection.
+            </label>
+            <button
+              onClick={handleConsent}
+              disabled={!document.getElementById("consentCheck")?.checked}
+              style={{
+                background: "#793ef9",
+                color: "#fff",
+                border: "none",
+                padding: "10px 20px",
+                fontSize: "1em",
+                cursor: "pointer",
+                borderRadius: "16px", 
+                opacity: document.getElementById("consentCheck")?.checked
+                  ? 1
+                  : 0.5
+              }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
   </div>
-  )
+      ) : (
+        <>
+          {/* === Your existing UI BELOW === */}
+          <div style={STYLES.area}>
+            <textarea
+              rows={4}
+              type="text"
+              style={STYLES.text}
+              value={message}
+              onChange={(e) => setText(e.target.value.substring(0, 200))}
+            />
+            <textarea
+              rows={4}
+              type="text"
+              style={STYLES.question}
+              value={text}
+              onChange={(e) => setText(e.target.value.substring(0, 200))}
+            />
+            <button
+              onClick={() => handleListen()}
+              style={STYLES.speak}
+            >
+              {speak ? "Running..." : "Speak"}
+            </button>
+          </div>
+
+          <ReactAudioPlayer
+            src={audioSource}
+            ref={audioPlayer}
+            onEnded={playerEnded}
+            onCanPlayThrough={playerReady}
+          />
+
+          <Canvas dpr={2} onCreated={(ctx) => {
+              ctx.gl.physicallyCorrectLights = true;
+            }}>
+            <OrthographicCamera makeDefault zoom={1700} position={[0, 1.65, 1]} />
+            <OrbitControls target={[0, 1.65, 0]} />
+
+            <Suspense fallback={null}>
+              <Environment
+                background={false}
+                files="/images/photo_studio_loft_hall_1k.hdr"
+              />
+            </Suspense>
+
+            <Suspense fallback={null}><Bg /></Suspense>
+            <Suspense fallback={null}><Logo /></Suspense>
+            <Suspense fallback={null}>
+              <Avatar
+                avatar_url="/model.glb"
+                speak={speak}
+                setSpeak={setSpeak}
+                text={text}
+                setAudioSource={setAudioSource}
+                playing={playing}
+                intro={intro}
+                message={message}
+                setIntro={setIntro}
+              />
+            </Suspense>
+          </Canvas>
+
+          <Loader dataInterpolation={(p) => `Please turn your mic and audio on\nLoading... please wait`} />
+        </>
+      )}
+    </div>
+  );
 }
 
 function Bg() {
