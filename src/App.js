@@ -482,6 +482,13 @@ function App() {
           </p>
           <p style={{ marginTop: "10px" }}>{permissionStatus}</p>
 
+            {/* === Consent checkbox appears first === */}
+        <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+          <label style={{ display: "block", marginBottom: "10px" }}>
+            <input type="checkbox" id="consentCheck" /> I consent to microphone usage and data collection.
+          </label>
+        </div>
+
           <div style={{ marginTop: "20px" }}>
             <button
               onClick={requestPermissions}
@@ -502,10 +509,10 @@ function App() {
           </div>
 
           <div style={{ marginTop: "10px" }}>
-            <label style={{ display: "block", marginBottom: "10px" }}>
+            {/* <label style={{ display: "block", marginBottom: "10px" }}>
               <input type="checkbox" id="consentCheck" />{" "}
               I consent to microphone usage and data collection.
-            </label>
+            </label> */}
             <button
               onClick={handleConsent}
               disabled={!document.getElementById("consentCheck")?.checked}
