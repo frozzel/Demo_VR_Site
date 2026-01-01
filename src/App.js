@@ -342,14 +342,28 @@ function App() {
   const [hasConsent, setHasConsent] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState("Requesting...");
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const recognition = new SpeechRecognition();
+  // const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  // const recognition = new SpeechRecognition();
+
+  let recognition = null;
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+  } else {
+    console.warn("SpeechRecognition is not supported in this browser.");
+  }
 
   const handleListen = async () => {
     setMessage('Listening...');
-    console.log(message)
+    // console.log(message)
   
     var quest = null
+
+    if (!recognition) {
+      setMessage("Speech recognition not supported in this browser.");
+    return;}
   
     if (!recognition.running) {
       recognition.start();
