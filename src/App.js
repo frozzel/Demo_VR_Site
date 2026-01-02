@@ -17,6 +17,45 @@ import * as THREE from 'three';
 import axios from 'axios';
 const _ = require('lodash');
 
+// === WHISPER SPEECH TO TEXT Fallback ===
+async function recordAndSendToWhisper() {
+  try {
+    // Ask for mic permission
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+
+    return new Promise((resolve, reject) => {
+      recorder.onstop = async () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        const formData = new FormData();
+        formData.append("audio", blob, "speech.webm");
+
+        try {
+          const res = await fetch(`${host}/speech-to-text`, {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+          resolve(data.text);     // Whisper’s transcript
+        } catch (err) {
+          reject(err);
+        }
+      };
+
+      recorder.start();
+
+      // Optional: stop after 5 seconds or add your own UI trigger
+      setTimeout(() => recorder.stop(), 5000);
+    });
+  } catch (err) {
+    console.error("Recording failed:", err);
+    return null;
+  }
+}
+
 const host = process.env.REACT_APP_ROUTER_API;
 const host2 = process.env.REACT_APP_ROUTER_BASE;
 
@@ -355,46 +394,81 @@ function App() {
     console.warn("SpeechRecognition is not supported in this browser.");
   }
 
-  const handleListen = async () => {
-    setMessage('Listening...');
-    // console.log(message)
+  // const handleListen = async () => {
+  //   setMessage('Listening...');
+  //   // console.log(message)
   
-    var quest = null
+  //   var quest = null
 
-    if (!recognition) {
-      setMessage("Speech recognition not supported in this browser.");
-    return;}
+  //   if (!recognition) {
+  //     setMessage("Speech recognition not supported in this browser.");
+  //   return;}
   
-    if (!recognition.running) {
-      recognition.start();
-      recognition.onstart = () => {
-        setMessage('Voice recognition started. Speak into the microphone.');
-      };
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setMessage('Voice recognition result:', transcript);
-        quest = transcript;
-      };
-      recognition.onend =  () => {
-        setMessage('Voice recognition ended.');
+  //   if (!recognition.running) {
+  //     recognition.start();
+  //     recognition.onstart = () => {
+  //       setMessage('Voice recognition started. Speak into the microphone.');
+  //     };
+  //     recognition.onresult = (event) => {
+  //       const transcript = event.results[0][0].transcript;
+  //       setMessage('Voice recognition result:', transcript);
+  //       quest = transcript;
+  //     };
+  //     recognition.onend =  () => {
+  //       setMessage('Voice recognition ended.');
         
-        //  setQuestion(quest)
+  //       //  setQuestion(quest)
         
-        // fetchChatGpt(quest)
+  //       // fetchChatGpt(quest)
 
-        setText(quest);
-        setSpeak(true);
+  //       setText(quest);
+  //       setSpeak(true);
   
-      };
+  //     };
       
-      } else {
-        recognition.stop();
-        setMessage('Voice recognition stopped. Click on the Microphone logo to start again.');
-    }
+  //     } else {
+  //       recognition.stop();
+  //       setMessage('Voice recognition stopped. Click on the Microphone logo to start again.');
+  //   }
     
-  };
+  // };
 
   // End of play
+    const handleListen = async () => {
+      setMessage("Listening...");
+
+      // Do we have native Web Speech?
+      if (recognition) {
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setText(transcript);
+          setSpeak(true);
+        };
+        recognition.onerror = (e) => {
+          console.error(e);
+          setMessage("Speech recognition error. Falling back to Whisper.");
+          // Fallback if native fails
+          handleWhisperFallback();
+        };
+        recognition.start();
+      } else {
+        // No native SpeechRecognition — go straight to Whisper
+        handleWhisperFallback();
+      }
+    };
+
+// fallback function
+    async function handleWhisperFallback() {
+      const transcript = await recordAndSendToWhisper();
+      if (transcript) {
+        setText(transcript);
+        setSpeak(true); // triggers avatar/audio generation
+      } else {
+        setMessage("Could not get speech input.");
+      }
+    }
+  
+  
   function playerEnded(e) {
     setAudioSource(null);
     setSpeak(false);
