@@ -481,6 +481,34 @@ function App() {
     setPlaying(true);
 
   }  
+
+    // Force playback when a new audio source is set and handle autoplay blocks
+    useEffect(() => {
+      const el = audioPlayer.current?.audioEl?.current;
+      if (!audioSource || !el) return;
+
+      const startPlaying = () => {
+        el.play()
+          .then(() => {
+            console.log("Audio playing ✔");
+            setPlaying(true);
+          })
+          .catch((err) => {
+            console.warn("Autoplay blocked — waiting for user gesture", err);
+            setPlaying(false);
+          });
+      };
+
+      // Some browsers fire "canplaythrough", others "loadeddata"
+      el.addEventListener("canplaythrough", startPlaying);
+      el.addEventListener("loadeddata", startPlaying);
+
+      return () => {
+        el.removeEventListener("canplaythrough", startPlaying);
+        el.removeEventListener("loadeddata", startPlaying);
+      };
+    }, [audioSource]);
+
   // Request microphone permissions
     const requestPermissions = async () => {
     try {
