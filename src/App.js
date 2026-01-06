@@ -382,8 +382,15 @@ function App() {
   const [hasConsent, setHasConsent] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState("Requesting...");
 
-  // const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  // const recognition = new SpeechRecognition();
+  const globalCtxRef = useRef(null);
+  const audioConnected = useRef(false);
+
+  useEffect(() => {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!globalCtxRef.current && AudioContext) {
+      globalCtxRef.current = new AudioContext();
+    }
+  }, []);
 
   let recognition = null;
   const SpeechRecognition =
@@ -484,31 +491,91 @@ function App() {
   }  
 
     // Force playback when a new audio source is set and handle autoplay blocks
-    useEffect(() => {
-      const el = audioPlayer.current?.audioEl?.current;
-      if (!audioSource || !el) return;
+  // useEffect(() => {
+  //   const el = audioPlayer.current?.audioEl?.current;
+  //   if (!audioSource || !el) return;
 
-      const startPlaying = () => {
-        el.play()
-          .then(() => {
-            console.log("Audio playing ✔");
-            setPlaying(true);
-          })
-          .catch((err) => {
-            console.warn("Autoplay blocked — waiting for user gesture", err);
-            setPlaying(false);
-          });
-      };
+  //   const ctx = globalCtxRef.current;
+  //   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-      // Some browsers fire "canplaythrough", others "loadeddata"
-      el.addEventListener("canplaythrough", startPlaying);
-      el.addEventListener("loadeddata", startPlaying);
+  //   // hook up once
+  //   if (isSafari && ctx && !audioConnected.current) {
+  //     try {
+  //       if (ctx.state === "suspended") ctx.resume();
+  //       const src = ctx.createMediaElementSource(el);
+  //       src.connect(ctx.destination);
+  //       audioConnected.current = true;
+  //     } catch (e) {
+  //       console.warn("Could not initialize AudioContext:", e);
+  //     }
+  //   }
 
-      return () => {
-        el.removeEventListener("canplaythrough", startPlaying);
-        el.removeEventListener("loadeddata", startPlaying);
-      };
-    }, [audioSource]);
+  //   const startPlaying = () => {
+  //     el.play()
+  //       .then(() => {
+  //         console.log("Safari playback started");
+  //         setPlaying(true);
+  //       })
+  //       .catch((err) => {
+  //         console.warn("Safari PLAY failed:", err);
+  //         setPlaying(false);
+  //       });
+  //   };
+
+  //   el.addEventListener("canplaythrough", startPlaying);
+  //   el.addEventListener("loadeddata", startPlaying);
+
+  //   return () => {
+  //     el.removeEventListener("canplaythrough", startPlaying);
+  //     el.removeEventListener("loadeddata", startPlaying);
+  //   };
+  // }, [audioSource]);
+  // SAFARI-FRIENDLY audio playback
+useEffect(() => {
+  const el = audioPlayer.current?.audioEl?.current;
+  if (!audioSource || !el) return;
+
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const ctx = globalCtxRef.current;
+
+  // Safari: play directly (no Web Audio routing)
+    if (isSafari) {
+      if (ctx && ctx.state === "suspended") ctx.resume();
+      el.crossOrigin = "anonymous";      // keep CORS clean
+      el.load();                         // make sure new src is applied
+      el.play()
+        .then(() => {
+          console.log("Safari playback started ✅");
+          setPlaying(true);
+        })
+        .catch(err => {
+          console.warn("Safari PLAY blocked:", err);
+          setPlaying(false);
+        });
+      return;                            // skip the rest for Safari
+    }
+
+    // Other browsers
+    const startPlaying = () => {
+      el.play()
+        .then(() => {
+          console.log("Audio playing ✔");
+          setPlaying(true);
+        })
+        .catch(err => {
+          console.warn("Autoplay blocked", err);
+          setPlaying(false);
+        });
+    };
+
+    el.addEventListener("canplaythrough", startPlaying);
+    el.addEventListener("loadeddata", startPlaying);
+
+    return () => {
+      el.removeEventListener("canplaythrough", startPlaying);
+      el.removeEventListener("loadeddata", startPlaying);
+    };
+  }, [audioSource]);
 
   // Request microphone permissions
     const requestPermissions = async () => {
@@ -541,6 +608,7 @@ function App() {
 
   useEffect(() => {
     const saved = localStorage.getItem("userConsent");
+    
     if (saved === "true") {
       setHasConsent(true);
     }
@@ -669,15 +737,26 @@ function App() {
               value={text}
               onChange={(e) => setText(e.target.value.substring(0, 200))}
             />
-            <button
-              onClick={() => handleListen()}
-              style={STYLES.speak}
-            >
-              {speak ? "Running..." : "Speak"}
-            </button>
+        <button
+          onClick={() => {
+            // ⬇️ SAFARI AUDIO UNLOCK ⬇️
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            window._globalCtx = window._globalCtx || new AudioContext();
+            if (window._globalCtx.state === "suspended") {
+              window._globalCtx.resume();
+            }
+            // ⬆️ SAFARI AUDIO UNLOCK ⬆️
+
+            handleListen();   // your existing mic start
+          }}
+          style={STYLES.speak}
+        >
+          {speak ? "Running..." : "Speak"}
+        </button>
           </div>
 
           <ReactAudioPlayer
+            crossOrigin="anonymous"
             src={audioSource}
             ref={audioPlayer}
             onEnded={playerEnded}
