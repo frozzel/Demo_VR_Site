@@ -236,8 +236,8 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
 
     makeSpeech(text)
     .then( response => {
-
-      let {blendData, filename}= response.data;
+      console.log("makeSpeech response:", response.data);
+      let { blendData, filename } = response.data || {};
 
       let newClips = [ 
         createAnimation(blendData, morphTargetDictionaryBody, 'HG_Body'), 
@@ -265,7 +265,8 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     makeSpeech2(message)
     .then( response => {
 
-      let {blendData, filename}= response.data;
+      console.log("makeSpeech2 response:", response.data);
+      let { blendData, filename } = response.data || {};
 
       let newClips = [ 
         createAnimation(blendData, morphTargetDictionaryBody, 'HG_Body'), 
