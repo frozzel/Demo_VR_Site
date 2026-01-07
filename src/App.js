@@ -363,10 +363,10 @@ function makeSpeech2(text) {
 }
 
 const STYLES = {
-  area: {position: 'absolute', bottom:'10px', left: '10px', zIndex: 500, display: 'flex', flexDirection: 'column', background: '#222222', padding: '10px',  borderRadius: '5px'},
+  area: {position: 'absolute', bottom:'10px', left: '10px', zIndex: 500, display: 'flex', flexDirection: 'column', background: '#222222', padding: '10px',  borderRadius: '5px', opacity: 0.5},
   text: {margin: '0px', width:'300px', padding: '5px', background: 'none', color: '#ffffff', fontSize: '1.2em', border: 'none'},
   question: {margin: '0px', width:'300px', padding: '5px', background: 'none', color: '#DC9BD4', fontSize: '1.2em', border: 'none'},
-  speak: {padding: '10px', marginTop: '5px', display: 'block', color: '#222222', background: '#ffffff', border: 'None', maxWidth: '80px'},
+  speak: {padding: '10px', marginTop: '5px', display: 'block', color: '#222222', background: '#ffffff', border: 'None', maxWidth: '80px', borderRadius: '16px', cursor: 'pointer', fontSize: '1em'},
   area2: {position: 'absolute', top:'5px', right: '15px', zIndex: 500},
   label: {color: '#777777', fontSize:'0.8em'}
 }
@@ -491,91 +491,69 @@ function App() {
   }  
 
     // Force playback when a new audio source is set and handle autoplay blocks
-  // useEffect(() => {
-  //   const el = audioPlayer.current?.audioEl?.current;
-  //   if (!audioSource || !el) return;
+    // connect the <audio> element to the global context once (needed for iPhone)
+    useEffect(() => {
+      const el = audioPlayer.current?.audioEl?.current;
+      if (!el || !window._globalCtx) return;
 
-  //   const ctx = globalCtxRef.current;
-  //   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-  //   // hook up once
-  //   if (isSafari && ctx && !audioConnected.current) {
-  //     try {
-  //       if (ctx.state === "suspended") ctx.resume();
-  //       const src = ctx.createMediaElementSource(el);
-  //       src.connect(ctx.destination);
-  //       audioConnected.current = true;
-  //     } catch (e) {
-  //       console.warn("Could not initialize AudioContext:", e);
-  //     }
-  //   }
-
-  //   const startPlaying = () => {
-  //     el.play()
-  //       .then(() => {
-  //         console.log("Safari playback started");
-  //         setPlaying(true);
-  //       })
-  //       .catch((err) => {
-  //         console.warn("Safari PLAY failed:", err);
-  //         setPlaying(false);
-  //       });
-  //   };
-
-  //   el.addEventListener("canplaythrough", startPlaying);
-  //   el.addEventListener("loadeddata", startPlaying);
-
-  //   return () => {
-  //     el.removeEventListener("canplaythrough", startPlaying);
-  //     el.removeEventListener("loadeddata", startPlaying);
-  //   };
-  // }, [audioSource]);
+      if (!el._connected) {
+        try {
+          const src = window._globalCtx.createMediaElementSource(el);
+          src.connect(window._globalCtx.destination);
+          el._connected = true;
+        } catch (e) {
+          // ignore InvalidStateError if already connected
+        }
+      }
+    }, []);
   // SAFARI-FRIENDLY audio playback
-useEffect(() => {
-  const el = audioPlayer.current?.audioEl?.current;
-  if (!audioSource || !el) return;
+    useEffect(() => {
+      const el = audioPlayer.current?.audioEl?.current;
+      if (!audioSource || !el) return;
 
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  const ctx = globalCtxRef.current;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const ctx = globalCtxRef.current;
 
-  // Safari: play directly (no Web Audio routing)
+      // Safari: play directly (no Web Audio routing)
     if (isSafari) {
-      if (ctx && ctx.state === "suspended") ctx.resume();
-      el.crossOrigin = "anonymous";      // keep CORS clean
-      el.load();                         // make sure new src is applied
+      if (window._globalCtx && window._globalCtx.state === "suspended") {
+        window._globalCtx.resume();
+      }
+      el.crossOrigin = "anonymous";
+      el.load();
       el.play()
         .then(() => {
-          console.log("Safari playback started ✅");
+          console.log("iOS / Safari playback started ✅");
           setPlaying(true);
         })
         .catch(err => {
-          console.warn("Safari PLAY blocked:", err);
+          console.warn("iOS/Safari PLAY blocked:", err);
           setPlaying(false);
         });
-      return;                            // skip the rest for Safari
+      return;
     }
 
-    // Other browsers
-    const startPlaying = () => {
-      el.play()
-        .then(() => {
-          console.log("Audio playing ✔");
-          setPlaying(true);
-        })
-        .catch(err => {
-          console.warn("Autoplay blocked", err);
-          setPlaying(false);
-        });
-    };
+        // Other browsers
+        const startPlaying = () => {
+          el.play()
+            .then(() => {
+              console.log("Audio playing ✔");
+              setPlaying(true);
+            })
+            .catch(err => {
+              console.warn("Autoplay blocked", err);
+              setPlaying(false);
+            });
+        };
 
-    el.addEventListener("canplaythrough", startPlaying);
-    el.addEventListener("loadeddata", startPlaying);
+        el.addEventListener("canplaythrough", startPlaying);
+        el.addEventListener("loadeddata", startPlaying);
 
-    return () => {
-      el.removeEventListener("canplaythrough", startPlaying);
-      el.removeEventListener("loadeddata", startPlaying);
-    };
-  }, [audioSource]);
+        return () => {
+          el.removeEventListener("canplaythrough", startPlaying);
+          el.removeEventListener("loadeddata", startPlaying);
+        };
+      }, [audioSource]);
 
   // Request microphone permissions
     const requestPermissions = async () => {
@@ -613,6 +591,14 @@ useEffect(() => {
       setHasConsent(true);
     }
   }, []);
+
+  const resumeAudio = () => {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    window._globalCtx = window._globalCtx || new AudioContext();
+    if (window._globalCtx.state === "suspended") {
+      window._globalCtx.resume();
+    }
+  };
 
   return (
     <div className="full">
@@ -675,22 +661,37 @@ useEffect(() => {
         </div>
 
           <div style={{ marginTop: "20px" }}>
-            <button
-              onClick={requestPermissions}
-              style={{
-                background: "#f687b3",
-                color: "#333",
-                border: "none",
-                padding: "10px 20px",
-                margin: "5px",
-                fontSize: "1em",
-                cursor: "pointer",
-                borderRadius: "16px",   // 👈 Rounded corners here
-                
-              }}
-            >
-              Request Microphone Access
-            </button>
+          <button
+            onClick={() => {
+              // must be inside this user gesture for iPhone
+              navigator.mediaDevices
+                .getUserMedia({ audio: true })
+                .then(() => {
+                  console.log("Microphone access granted ✅");
+                  setPermissionStatus(
+                    "Microphone access granted. Please accept data collection to continue."
+                  );
+                })
+                .catch((err) => {
+                  console.error("Microphone permission denied:", err);
+                  setPermissionStatus(
+                    "Microphone access denied. Please allow it to use voice features."
+                  );
+                });
+            }}
+            style={{
+              background: "#f687b3",
+              color: "#333",
+              border: "none",
+              padding: "10px 20px",
+              margin: "5px",
+              fontSize: "1em",
+              cursor: "pointer",
+              borderRadius: "16px",
+            }}
+          >
+            Request Microphone Access
+          </button>
           </div>
 
           <div style={{ marginTop: "10px" }}>
@@ -699,7 +700,10 @@ useEffect(() => {
               I consent to microphone usage and data collection.
             </label> */}
             <button
-              onClick={handleConsent}
+              onClick={ () => {
+                resumeAudio();
+                handleConsent();
+              }}
               disabled={!document.getElementById("consentCheck")?.checked}
               style={{
                 background: "#793ef9",
@@ -746,7 +750,7 @@ useEffect(() => {
               window._globalCtx.resume();
             }
             // ⬆️ SAFARI AUDIO UNLOCK ⬆️
-
+            resumeAudio();
             handleListen();   // your existing mic start
           }}
           style={STYLES.speak}
