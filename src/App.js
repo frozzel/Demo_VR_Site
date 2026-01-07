@@ -739,11 +739,26 @@ function App() {
         </div>
   </div>
       ) : !ready ? (        // 👈 second layer : show Tap‑to‑Start overlay
+            <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          // Background image:
+          backgroundImage: "url('/images/office3.jpeg')", // ⬅️ your image here
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          zIndex: 9999
+        }}
+      >
       <div
         style={{
           position: "fixed",
           inset: 0,
-          backgroundColor: "rgba(0,0,0,0.85)",
+          backgroundColor: "rgba(0,0,0,0.7)",
           color: "#fff",
           zIndex: 9999,
           display: "flex",
@@ -751,16 +766,27 @@ function App() {
           justifyContent: "center",
           alignItems: "center",
           textAlign: "center",
+
         }}
       >
-        <h2 style={{ marginBottom: "1rem" }}>Tap to Start the Assistant</h2>
+        <img
+          src="/images/cyrusLogoLg.png"    // Adjust path as needed
+          alt="Cyrus Group Logo"
+          style={{
+            width: "400px",
+            marginBottom: "1.5rem",
+            borderRadius: "8px",            // Optional: rounded logo corners
+            objectFit: "contain"
+          }}
+        />
+        <h2 style={{ marginBottom: "1rem" }}>Tap to Restart our AI Assistant</h2>
         <button
           onClick={primeAudio}          // 👈 call the helper we added earlier
           style={{
             background: "#793ef9",
             color: "#fff",
             border: "none",
-            padding: "12px 32px",
+            padding: "8px 20px",
             fontSize: "1.1em",
             borderRadius: "20px",
             cursor: "pointer",
@@ -768,6 +794,7 @@ function App() {
         >
           Start
         </button>
+      </div>
       </div>
       ) : (
         <>
