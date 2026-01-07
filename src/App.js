@@ -384,6 +384,7 @@ function App() {
 
   const globalCtxRef = useRef(null);
   const audioConnected = useRef(false);
+  const audioPrimedRef = useRef(false);
 
   useEffect(() => {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -741,22 +742,37 @@ function App() {
               value={text}
               onChange={(e) => setText(e.target.value.substring(0, 200))}
             />
-        <button
-          onClick={() => {
-            // ⬇️ SAFARI AUDIO UNLOCK ⬇️
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            window._globalCtx = window._globalCtx || new AudioContext();
-            if (window._globalCtx.state === "suspended") {
-              window._globalCtx.resume();
-            }
-            // ⬆️ SAFARI AUDIO UNLOCK ⬆️
-            resumeAudio();
-            handleListen();   // your existing mic start
-          }}
-          style={STYLES.speak}
-        >
-          {speak ? "Running..." : "Speak"}
-        </button>
+            <button
+              onClick={() => {
+                // unlock audio context
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                window._globalCtx = window._globalCtx || new AudioContext();
+                if (window._globalCtx.state === "suspended") {
+                  window._globalCtx.resume();
+                }
+
+                // prime <audio> element – this counts as a gesture‑based play
+                const el = audioPlayer.current?.audioEl?.current;
+                if (el && !audioPrimedRef.current) {
+                  try {
+                    el.muted = true;               // mute so user doesn't hear anything
+                    el.play().then(() => {
+                      el.pause();                  // immediately stop
+                      el.muted = false;
+                      audioPrimedRef.current = true;
+                      console.log("iOS audio primed ✅");
+                    });
+                  } catch (e) {
+                    console.warn("Prime failed", e);
+                  }
+                }
+
+                handleListen();
+              }}
+              style={STYLES.speak}
+            >
+              {speak ? "Running…" : "Speak"}
+            </button>
           </div>
 
           <ReactAudioPlayer
