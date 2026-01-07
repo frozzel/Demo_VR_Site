@@ -385,6 +385,7 @@ function App() {
   const globalCtxRef = useRef(null);
   const audioConnected = useRef(false);
   const audioPrimedRef = useRef(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -392,6 +393,37 @@ function App() {
       globalCtxRef.current = new AudioContext();
     }
   }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem("audioPrimed") === "true") {
+      setReady(true);
+    }
+  }, []);
+
+  /* === helper to unlock audio on user tap === */
+  const primeAudio = () => {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    window._globalCtx = window._globalCtx || new AudioContext();
+    if (window._globalCtx.state === "suspended") {
+      window._globalCtx.resume();
+    }
+    const el = audioPlayer.current?.audioEl?.current;
+    if (el) {
+      el.muted = true;
+      el.play()
+        .then(() => {
+          el.pause();
+          el.currentTime = 0;
+          el.muted = false;
+          console.log("Audio primed ✅");
+          setReady(true);
+        })
+        .catch((e) => console.warn("Audio priming failed", e));
+    } else {
+      setReady(true);
+      localStorage.setItem("audioPrimed", "true");
+    }
+  };
 
   let recognition = null;
   const SpeechRecognition =
@@ -402,45 +434,6 @@ function App() {
   } else {
     console.warn("SpeechRecognition is not supported in this browser.");
   }
-
-  // const handleListen = async () => {
-  //   setMessage('Listening...');
-  //   // console.log(message)
-  
-  //   var quest = null
-
-  //   if (!recognition) {
-  //     setMessage("Speech recognition not supported in this browser.");
-  //   return;}
-  
-  //   if (!recognition.running) {
-  //     recognition.start();
-  //     recognition.onstart = () => {
-  //       setMessage('Voice recognition started. Speak into the microphone.');
-  //     };
-  //     recognition.onresult = (event) => {
-  //       const transcript = event.results[0][0].transcript;
-  //       setMessage('Voice recognition result:', transcript);
-  //       quest = transcript;
-  //     };
-  //     recognition.onend =  () => {
-  //       setMessage('Voice recognition ended.');
-        
-  //       //  setQuestion(quest)
-        
-  //       // fetchChatGpt(quest)
-
-  //       setText(quest);
-  //       setSpeak(true);
-  
-  //     };
-      
-  //     } else {
-  //       recognition.stop();
-  //       setMessage('Voice recognition stopped. Click on the Microphone logo to start again.');
-  //   }
-    
-  // };
 
   // End of play
     const handleListen = async () => {
@@ -585,6 +578,27 @@ function App() {
     setHasConsent(true);
   };
 
+  /* === Intro speech effect runs AFTER ready tap === */
+    useEffect(() => {
+      if (!ready || !intro) return;     // wait until user tapped
+      makeSpeech2(message)
+        .then((response) => {
+          const { blendData, filename } = response.data || {};
+          if (!blendData) return;
+          // const newClips = [
+          //   createAnimation(blendData, null, "HG_Body"),
+          //   createAnimation(blendData, null, "HG_TeethLower"),
+          // ];
+          // setClips(newClips);
+          setAudioSource(host2 + filename);
+          setIntro(false);
+        })
+        .catch((err) => {
+          console.error("Intro TTS failed:", err);
+          setIntro(false);
+        });
+    }, [ready, intro]);
+
   useEffect(() => {
     const saved = localStorage.getItem("userConsent");
     
@@ -600,7 +614,7 @@ function App() {
       window._globalCtx.resume();
     }
   };
-
+  
   return (
     <div className="full">
       {!hasConsent ? (
@@ -724,6 +738,37 @@ function App() {
           </div>
         </div>
   </div>
+      ) : !ready ? (        // 👈 second layer : show Tap‑to‑Start overlay
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(0,0,0,0.85)",
+          color: "#fff",
+          zIndex: 9999,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
+        <h2 style={{ marginBottom: "1rem" }}>Tap to Start the Assistant</h2>
+        <button
+          onClick={primeAudio}          // 👈 call the helper we added earlier
+          style={{
+            background: "#793ef9",
+            color: "#fff",
+            border: "none",
+            padding: "12px 32px",
+            fontSize: "1.1em",
+            borderRadius: "20px",
+            cursor: "pointer",
+          }}
+        >
+          Start
+        </button>
+      </div>
       ) : (
         <>
           {/* === Your existing UI BELOW === */}
