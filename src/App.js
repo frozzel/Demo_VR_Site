@@ -779,7 +779,7 @@ function App() {
             objectFit: "contain"
           }}
         />
-        <h2 style={{ marginBottom: "1rem" }}>Tap to Restart our AI Assistant</h2>
+        <h2 style={{ marginBottom: "1rem" }}>Tap to Start our AI Assistant</h2>
         <button
           onClick={primeAudio}          // 👈 call the helper we added earlier
           style={{
