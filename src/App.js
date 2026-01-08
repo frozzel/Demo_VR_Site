@@ -395,7 +395,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (localStorage.getItem("audioPrimed") === "true") {
+    if (sessionStorage.getItem("audioPrimed") === "true") {
       setReady(true);
     }
   }, []);
@@ -421,7 +421,7 @@ function App() {
         .catch((e) => console.warn("Audio priming failed", e));
     } else {
       setReady(true);
-      localStorage.setItem("audioPrimed", "true");
+      sessionStorage.setItem("audioPrimed", "true");
     }
   };
 
