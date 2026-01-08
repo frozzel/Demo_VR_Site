@@ -579,25 +579,25 @@ function App() {
   };
 
   /* === Intro speech effect runs AFTER ready tap === */
-    useEffect(() => {
-      if (!ready || !intro) return;     // wait until user tapped
-      makeSpeech2(message)
-        .then((response) => {
-          const { blendData, filename } = response.data || {};
-          if (!blendData) return;
-          // const newClips = [
-          //   createAnimation(blendData, null, "HG_Body"),
-          //   createAnimation(blendData, null, "HG_TeethLower"),
-          // ];
-          // setClips(newClips);
-          setAudioSource(host2 + filename);
-          setIntro(false);
-        })
-        .catch((err) => {
-          console.error("Intro TTS failed:", err);
-          setIntro(false);
-        });
-    }, [ready, intro]);
+    // useEffect(() => {
+    //   if (!ready || !intro) return;     // wait until user tapped
+    //   makeSpeech2(message)
+    //     .then((response) => {
+    //       const { blendData, filename } = response.data || {};
+    //       if (!blendData) return;
+    //       // const newClips = [
+    //       //   createAnimation(blendData, null, "HG_Body"),
+    //       //   createAnimation(blendData, null, "HG_TeethLower"),
+    //       // ];
+    //       // setClips(newClips);
+    //       setAudioSource(host2 + filename);
+    //       setIntro(false);
+    //     })
+    //     .catch((err) => {
+    //       console.error("Intro TTS failed:", err);
+    //       setIntro(false);
+    //     });
+    // }, [ready, intro]);
 
   useEffect(() => {
     const saved = localStorage.getItem("userConsent");
