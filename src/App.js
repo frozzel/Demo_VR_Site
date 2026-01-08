@@ -235,7 +235,9 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
       return;
 
     makeSpeech(text)
+    
     .then( response => {
+      console.log("makeSpeech called with text:", text);
       console.log("makeSpeech response:", response.data);
       let { blendData, filename } = response.data || {};
 
@@ -255,7 +257,7 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
 
     })
 
-  }, [speak]);
+  }, [speak, text]);
 
   useEffect(() => {
 
@@ -265,8 +267,13 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     makeSpeech2(message)
     .then( response => {
 
-      console.log("makeSpeech2 response:", response.data);
-      let { blendData, filename } = response.data || {};
+    console.log("makeSpeech2 response:", response.data);
+    let { blendData, filename } = response.data || {};
+
+    if (!blendData || !filename) {
+      setIntro(false);
+      return;
+    }
 
       let newClips = [ 
         createAnimation(blendData, morphTargetDictionaryBody, 'HG_Body'), 
@@ -282,11 +289,9 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     .catch(err => {
       console.error(err, "Error in making speech");
       setIntro(false);
-      setSpeak(false);
-
     })
 
-  }, [speak]);
+  }, []);
 
   let idleFbx = useFBX('/idle.fbx');
   let { clips: idleClips } = useAnimations(idleFbx.animations);
@@ -501,53 +506,104 @@ function App() {
       }
     }, []);
   // SAFARI-FRIENDLY audio playback
+    // useEffect(() => {
+    //   const el = audioPlayer.current?.audioEl?.current;
+    //   if (!audioSource || !el) return;
+
+    //   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    //   const ctx = globalCtxRef.current;
+
+    //   // Safari: play directly (no Web Audio routing)
+    // if (isSafari) {
+    //   if (window._globalCtx && window._globalCtx.state === "suspended") {
+    //     window._globalCtx.resume();
+    //   }
+    //   el.crossOrigin = "anonymous";
+    //   el.load();
+    //   el.play()
+    //     .then(() => {
+    //       console.log("iOS / Safari playback started ✅");
+    //       setPlaying(true);
+    //     })
+    //     .catch(err => {
+    //       console.warn("iOS/Safari PLAY blocked:", err);
+    //       setPlaying(false);
+    //     });
+    //   return;
+    // }
+
+    //     // Other browsers
+    //     const startPlaying = () => {
+    //       el.play()
+    //         .then(() => {
+    //           console.log("Audio playing ✔");
+    //           setPlaying(true);
+    //         })
+    //         .catch(err => {
+    //           console.warn("Autoplay blocked", err);
+    //           setPlaying(false);
+    //         });
+    //     };
+
+    //     el.addEventListener("canplaythrough", startPlaying);
+    //     el.addEventListener("loadeddata", startPlaying);
+
+    //     return () => {
+    //       el.removeEventListener("canplaythrough", startPlaying);
+    //       el.removeEventListener("loadeddata", startPlaying);
+    //     };
+    //   }, [audioSource]);
     useEffect(() => {
-      const el = audioPlayer.current?.audioEl?.current;
-      if (!audioSource || !el) return;
+  const el = audioPlayer.current?.audioEl?.current;
+  if (!el || !audioSource) return;
 
-      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-      const ctx = globalCtxRef.current;
+  // === CRITICAL: Stop any currently playing audio first ===
+  el.pause();
+  el.currentTime = 0; // Reset to beginning (helps avoid glitches)
 
-      // Safari: play directly (no Web Audio routing)
-    if (isSafari) {
-      if (window._globalCtx && window._globalCtx.state === "suspended") {
-        window._globalCtx.resume();
-      }
-      el.crossOrigin = "anonymous";
-      el.load();
-      el.play()
-        .then(() => {
-          console.log("iOS / Safari playback started ✅");
-          setPlaying(true);
-        })
-        .catch(err => {
-          console.warn("iOS/Safari PLAY blocked:", err);
-          setPlaying(false);
-        });
-      return;
+  const playAudio = () => {
+    el.play()
+      .then(() => {
+        console.log("Audio playing ✔");
+        setPlaying(true);
+      })
+      .catch(err => {
+        console.warn("Playback failed:", err);
+        setPlaying(false);
+      });
+  };
+
+  // For Safari/iOS — direct play (already handled separately above)
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+  if (isSafari) {
+    if (window._globalCtx && window._globalCtx.state === "suspended") {
+      window._globalCtx.resume();
     }
+    el.crossOrigin = "anonymous";
+    el.load(); // Important: forces reload of new src
+    playAudio();
+    return;
+  }
 
-        // Other browsers
-        const startPlaying = () => {
-          el.play()
-            .then(() => {
-              console.log("Audio playing ✔");
-              setPlaying(true);
-            })
-            .catch(err => {
-              console.warn("Autoplay blocked", err);
-              setPlaying(false);
-            });
-        };
+  // For Chrome/Firefox/etc — wait for load events
+  el.load(); // Ensures new src is loaded
 
-        el.addEventListener("canplaythrough", startPlaying);
-        el.addEventListener("loadeddata", startPlaying);
+  const handleCanPlay = () => {
+    playAudio();
+    el.removeEventListener("canplaythrough", handleCanPlay);
+    el.removeEventListener("loadeddata", handleCanPlay);
+  };
 
-        return () => {
-          el.removeEventListener("canplaythrough", startPlaying);
-          el.removeEventListener("loadeddata", startPlaying);
-        };
-      }, [audioSource]);
+  el.addEventListener("canplaythrough", handleCanPlay);
+  el.addEventListener("loadeddata", handleCanPlay);
+
+  // Cleanup
+  return () => {
+    el.removeEventListener("canplaythrough", handleCanPlay);
+    el.removeEventListener("loadeddata", handleCanPlay);
+  };
+}, [audioSource]);
 
   // Request microphone permissions
     const requestPermissions = async () => {
@@ -814,37 +870,33 @@ function App() {
               value={text}
               onChange={(e) => setText(e.target.value.substring(0, 200))}
             />
-            <button
-              onClick={() => {
-                // unlock audio context
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                window._globalCtx = window._globalCtx || new AudioContext();
-                if (window._globalCtx.state === "suspended") {
-                  window._globalCtx.resume();
+          <button
+            onClick={() => {
+              // If we're already processing speech or listening, cancel everything
+              if (speak || message === "Listening...") {
+                setSpeak(false);
+                setMessage("Cancelled.");
+                setText("");
+                setAudioSource(null); // Stops current audio immediately
+                if (recognition) {
+                  recognition.abort(); // Stops listening if active
                 }
+                return;
+              }
 
-                // prime <audio> element – this counts as a gesture‑based play
-                const el = audioPlayer.current?.audioEl?.current;
-                if (el && !audioPrimedRef.current) {
-                  try {
-                    el.muted = true;               // mute so user doesn't hear anything
-                    el.play().then(() => {
-                      el.pause();                  // immediately stop
-                      el.muted = false;
-                      audioPrimedRef.current = true;
-                      console.log("iOS audio primed ✅");
-                    });
-                  } catch (e) {
-                    console.warn("Prime failed", e);
-                  }
-                }
+              // Otherwise — start listening
+              const AudioContext = window.AudioContext || window.webkitAudioContext;
+              window._globalCtx = window._globalCtx || new AudioContext();
+              if (window._globalCtx.state === "suspended") {
+                window._globalCtx.resume();
+              }
 
-                handleListen();
-              }}
-              style={STYLES.speak}
-            >
+              handleListen();
+            }}
+            style={STYLES.speak}
+          >
               {speak ? "Running…" : "Speak"}
-            </button>
+          </button>
           </div>
 
           <ReactAudioPlayer
