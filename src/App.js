@@ -712,7 +712,8 @@ function App() {
           src="/images/cyrusLogoLg.png"    // Adjust path as needed
           alt="Cyrus Group Logo"
           style={{
-            width: "600px",
+            width: "100%",
+            maxWidth: "600px",
             marginBottom: "1.5rem",
             borderRadius: "8px",            // Optional: rounded logo corners
             objectFit: "contain"
@@ -829,7 +830,8 @@ function App() {
           src="/images/cyrusLogoLg.png"    // Adjust path as needed
           alt="Cyrus Group Logo"
           style={{
-            width: "400px",
+            width: "100%",
+            maxWidth: "600px",
             marginBottom: "1.5rem",
             borderRadius: "8px",            // Optional: rounded logo corners
             objectFit: "contain"
