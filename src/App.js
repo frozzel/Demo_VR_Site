@@ -359,11 +359,23 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
 }
 
 
+// Helper to get or create a unique conversationsId
+function getOrCreateConversationId() {
+  let id = localStorage.getItem('conversationsId');
+  if (!id) {
+    id = 'conv_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    localStorage.setItem('conversationsId', id);
+  }
+  return id;
+}
+
 function makeSpeech(text) {
-  return axios.post(host + '/talk', { text });
+  const conversationsId = getOrCreateConversationId();
+  return axios.post(host + '/talk', { text, conversationsId });
 }
 
 function makeSpeech2(text) {
+  // const conversationsId = getOrCreateConversationId();
   return axios.post(host + '/talk2', { text });
 }
 
@@ -505,54 +517,7 @@ function App() {
         }
       }
     }, []);
-  // SAFARI-FRIENDLY audio playback
-    // useEffect(() => {
-    //   const el = audioPlayer.current?.audioEl?.current;
-    //   if (!audioSource || !el) return;
 
-    //   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    //   const ctx = globalCtxRef.current;
-
-    //   // Safari: play directly (no Web Audio routing)
-    // if (isSafari) {
-    //   if (window._globalCtx && window._globalCtx.state === "suspended") {
-    //     window._globalCtx.resume();
-    //   }
-    //   el.crossOrigin = "anonymous";
-    //   el.load();
-    //   el.play()
-    //     .then(() => {
-    //       console.log("iOS / Safari playback started ✅");
-    //       setPlaying(true);
-    //     })
-    //     .catch(err => {
-    //       console.warn("iOS/Safari PLAY blocked:", err);
-    //       setPlaying(false);
-    //     });
-    //   return;
-    // }
-
-    //     // Other browsers
-    //     const startPlaying = () => {
-    //       el.play()
-    //         .then(() => {
-    //           console.log("Audio playing ✔");
-    //           setPlaying(true);
-    //         })
-    //         .catch(err => {
-    //           console.warn("Autoplay blocked", err);
-    //           setPlaying(false);
-    //         });
-    //     };
-
-    //     el.addEventListener("canplaythrough", startPlaying);
-    //     el.addEventListener("loadeddata", startPlaying);
-
-    //     return () => {
-    //       el.removeEventListener("canplaythrough", startPlaying);
-    //       el.removeEventListener("loadeddata", startPlaying);
-    //     };
-    //   }, [audioSource]);
     useEffect(() => {
   const el = audioPlayer.current?.audioEl?.current;
   if (!el || !audioSource) return;
@@ -634,26 +599,6 @@ function App() {
     setHasConsent(true);
   };
 
-  /* === Intro speech effect runs AFTER ready tap === */
-    // useEffect(() => {
-    //   if (!ready || !intro) return;     // wait until user tapped
-    //   makeSpeech2(message)
-    //     .then((response) => {
-    //       const { blendData, filename } = response.data || {};
-    //       if (!blendData) return;
-    //       // const newClips = [
-    //       //   createAnimation(blendData, null, "HG_Body"),
-    //       //   createAnimation(blendData, null, "HG_TeethLower"),
-    //       // ];
-    //       // setClips(newClips);
-    //       setAudioSource(host2 + filename);
-    //       setIntro(false);
-    //     })
-    //     .catch((err) => {
-    //       console.error("Intro TTS failed:", err);
-    //       setIntro(false);
-    //     });
-    // }, [ready, intro]);
 
   useEffect(() => {
     const saved = localStorage.getItem("userConsent");
@@ -957,22 +902,6 @@ function Bg() {
   scene.background = texture; 
 
   return(<> 
- 
-    {/* <primitive object={gltf.scene} dispose={null} scale={[1, 1, 1]} position={[10, 0, 0]} rotation={[0, 0, 0]} /> */}
-    {/* <mesh position={[0, 1.5, -2]} scale={[0.8, 0.8, 0.8]}>
-      <planeBufferGeometry />
-      <meshBasicMaterial map={texture} side={THREE.DoubleSide}/>
-
-    </mesh> */}
-    {/* <mesh
-    visible
-    userData={{ hello: 'world' }}
-    position={new THREE.Vector3(0, 1.5, -3)}
-    rotation={new THREE.Euler(Math.PI / 2, 0, 0)}
-    geometry={new THREE.SphereGeometry(4, 16, 16)}
-    // material={new THREE.MeshBasicMaterial({ color: new THREE.Color('hotpink'), transparent: true })}
-    material={new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })}
-  /> */}
     
   </>)
 
