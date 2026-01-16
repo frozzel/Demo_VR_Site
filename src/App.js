@@ -375,8 +375,8 @@ function makeSpeech(text) {
 }
 
 function makeSpeech2(text) {
-  // const conversationsId = getOrCreateConversationId();
-  return axios.post(host + '/talk2', { text });
+  const conversationsId = getOrCreateConversationId();
+  return axios.post(host + '/talk2', { text, conversationsId });
 }
 
 const STYLES = {
