@@ -237,8 +237,8 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     makeSpeech(text)
     
     .then( response => {
-      console.log("makeSpeech called with text:", text);
-      console.log("makeSpeech response:", response.data);
+      // console.log("makeSpeech called with text:", text);
+      // console.log("makeSpeech response:", response.data);
       let { blendData, filename } = response.data || {};
 
       let newClips = [ 
@@ -267,7 +267,7 @@ function Avatar({ avatar_url, speak, setSpeak, text, setAudioSource, playing, in
     makeSpeech2(message)
     .then( response => {
 
-    console.log("makeSpeech2 response:", response.data);
+    // console.log("makeSpeech2 response:", response.data);
     let { blendData, filename } = response.data || {};
 
     if (!blendData || !filename) {
@@ -432,7 +432,7 @@ function App() {
           el.pause();
           el.currentTime = 0;
           el.muted = false;
-          console.log("Audio primed ✅");
+          // console.log("Audio primed ✅");
           setReady(true);
         })
         .catch((e) => console.warn("Audio priming failed", e));
@@ -574,7 +574,7 @@ function App() {
     const requestPermissions = async () => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log("Microphone access granted");
+      // console.log("Microphone access granted");
 
       setPermissionStatus("Microphone access granted. Please accept data collection to continue.");
     } catch (err) {
@@ -684,7 +684,7 @@ function App() {
               navigator.mediaDevices
                 .getUserMedia({ audio: true })
                 .then(() => {
-                  console.log("Microphone access granted ✅");
+                  // console.log("Microphone access granted ✅");
                   setPermissionStatus(
                     "Microphone access granted. Please accept data collection to continue."
                   );
